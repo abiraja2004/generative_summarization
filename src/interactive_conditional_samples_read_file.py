@@ -67,7 +67,11 @@ def interact_model(
 
         with open(file, 'r') as f:
             corpus = f.readlines()
+            review_no = 0
             for review in corpus:
+                review_no += 1
+                print("=" * 40 + " REVIEW " + str(review_no) + " " + "=" * 40)
+                print(review)
                 context_tokens = enc.encode(review)
                 generated = 0
                 for _ in range(nsamples // batch_size):
@@ -77,9 +81,10 @@ def interact_model(
                     for i in range(batch_size):
                         generated += 1
                         text = enc.decode(out[i])
-                        print("=" * 40 + " SAMPLE " + str(generated) + " " + "=" * 40)
+                        print("=" * 40 + " SUMMARY " + str(generated) + " " + "=" * 40)
                         print(text)
                 print("=" * 80)
+                print('\n\n')
         '''
         while True:
             raw_text = input("Model prompt >>> ")

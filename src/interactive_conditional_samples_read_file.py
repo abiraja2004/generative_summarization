@@ -9,7 +9,8 @@ import tensorflow as tf
 import model, sample, encoder
 
 def interact_model(
-    file,
+    reviewText,
+    summaries,
     model_name='117M',
     seed=None,
     nsamples=1,
@@ -17,6 +18,7 @@ def interact_model(
     length=None,
     temperature=1,
     top_k=0,
+    silent=0,
 ):
     """
     Interactively run the model
@@ -65,46 +67,35 @@ def interact_model(
         ckpt = tf.train.latest_checkpoint(os.path.join('models', model_name))
         saver.restore(sess, ckpt)
 
-        with open(file, 'r') as f:
-            corpus = f.readlines()
-            review_no = 0
-            for review in corpus:
-                review = review[:-1]
-                review_no += 1
-                print("=" * 40 + " REVIEW " + str(review_no) + " " + "=" * 40)
-                print(review)
-                context_tokens = enc.encode(review)
-                generated = 0
-                for _ in range(nsamples // batch_size):
-                    out = sess.run(output, feed_dict={
-                        context: [context_tokens for _ in range(batch_size)]
-                    })[:, len(context_tokens):]
-                    for i in range(batch_size):
-                        generated += 1
-                        text = enc.decode(out[i])
-                        print("=" * 40 + " SUMMARY " + str(generated) + " " + "=" * 40)
-                        print(text)
-                print("=" * 80)
-                print('\n\n')
-        '''
-        while True:
-            raw_text = input("Model prompt >>> ")
-            while not raw_text:
-                print('Prompt should not be empty!')
-                raw_text = input("Model prompt >>> ")
-            context_tokens = enc.encode(raw_text)
-            generated = 0
-            for _ in range(nsamples // batch_size):
-                out = sess.run(output, feed_dict={
-                    context: [context_tokens for _ in range(batch_size)]
-                })[:, len(context_tokens):]
-                for i in range(batch_size):
-                    generated += 1
-                    text = enc.decode(out[i])
-                    print("=" * 40 + " SAMPLE " + str(generated) + " " + "=" * 40)
-                    print(text)
-            print("=" * 80)
-        '''
+        with open(reviewText, 'r') as f:
+            with open(summaries, 'r') as g:
+                reviewText_corpus = f.readlines()
+                summary_corpus = g.readlines()
+                review_no = 0
+                for review, summary in zip(reviewText_corpus,summary_corpus):
+                    review = review[:-1]
+                    review_no += 1
+                    print("=" * 40 + " REVIEW " + str(review_no) + " " + "=" * 40)
+                    if not silent:
+                        print(review)
+                        print("=" * 40 + " GROUND TRUTH " + str(review_no) + " " + "=" * 40)
+                        print(summary)
+                    context_tokens = enc.encode(review)
+                    generated = 0
+                    for _ in range(nsamples // batch_size):
+                        out = sess.run(output, feed_dict={
+                            context: [context_tokens for _ in range(batch_size)]
+                        })[:, len(context_tokens):]
+                        for i in range(batch_size):
+                            generated += 1
+                            text = enc.decode(out[i])
+                            if not silent:
+                                print("=" * 40 + " SUMMARY " + str(generated) + " " + "=" * 40)
+                                print(text)
+                    if not silent:
+                        print("=" * 80)
+                        print('\n\n')
+
 if __name__ == '__main__':
     fire.Fire(interact_model)
 

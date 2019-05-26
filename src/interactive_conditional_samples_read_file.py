@@ -69,6 +69,7 @@ def interact_model(
             corpus = f.readlines()
             review_no = 0
             for review in corpus:
+                review = review[:-1]
                 review_no += 1
                 print("=" * 40 + " REVIEW " + str(review_no) + " " + "=" * 40)
                 print(review)
